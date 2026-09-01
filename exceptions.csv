@@ -1,0 +1,27 @@
+transaction_id,type,order_amount,settlement_amount,expected_settlement,difference
+TXN010,Date Mismatch,3000.0,2940.0,2940.0,0.0
+TXN016,Fee Mismatch,750.0,650.0,735.0,85.0
+TXN022,Fee Mismatch,500.0,400.0,490.0,90.0
+TXN023,Duplicate Transaction,750.0,735.0,735.0,0.0
+TXN032,Amount Mismatch,5000.0,4850.0,4900.0,50.0
+TXN035,Duplicate Transaction,5000.0,4900.0,4900.0,0.0
+TXN039,Date Mismatch,1000.0,980.0,980.0,0.0
+TXN042,Amount Mismatch,1500.0,1270.0,1470.0,200.0
+TXN044,Missing Settlement,1000.0,0.0,980.0,980.0
+TXN052,Amount Mismatch,1500.0,1170.0,1470.0,300.0
+TXN054,Date Mismatch,7500.0,7350.0,7350.0,0.0
+TXN058,Amount Mismatch,500.0,440.0,490.0,50.0
+TXN059,Amount Mismatch,3000.0,2840.0,2940.0,100.0
+TXN063,Missing Settlement,7500.0,0.0,7350.0,7350.0
+TXN066,Fee Mismatch,500.0,400.0,490.0,90.0
+TXN067,Date Mismatch,3000.0,2940.0,2940.0,0.0
+TXN076,Missing Settlement,10000.0,0.0,9800.0,9800.0
+TXN078,Amount Mismatch,2000.0,1910.0,1960.0,50.0
+TXN079,Amount Mismatch,5000.0,4600.0,4900.0,300.0
+TXN081,Duplicate Transaction,2500.0,2450.0,2450.0,0.0
+TXN082,Duplicate Transaction,2000.0,1960.0,1960.0,0.0
+TXN085,Date Mismatch,1000.0,980.0,980.0,0.0
+TXN093,Missing Settlement,500.0,0.0,490.0,490.0
+TXN096,Missing Settlement,2500.0,0.0,2450.0,2450.0
+TXN098,Missing Settlement,7500.0,0.0,7350.0,7350.0
+TXN099,Missing Settlement,1500.0,0.0,1470.0,1470.0

@@ -1,0 +1,27 @@
+transaction_id,type,difference,priority,recommended_action
+TXN010,Date Mismatch,0.0,LOW,Batch review recommended
+TXN016,Fee Mismatch,85.0,LOW,Batch review recommended
+TXN022,Fee Mismatch,90.0,LOW,Batch review recommended
+TXN023,Duplicate Transaction,0.0,HIGH,Verify duplicate before settlement
+TXN032,Amount Mismatch,50.0,LOW,Batch review recommended
+TXN035,Duplicate Transaction,0.0,HIGH,Verify duplicate before settlement
+TXN039,Date Mismatch,0.0,LOW,Batch review recommended
+TXN042,Amount Mismatch,200.0,MEDIUM,Finance team review
+TXN044,Missing Settlement,980.0,HIGH,Immediate human review
+TXN052,Amount Mismatch,300.0,MEDIUM,Finance team review
+TXN054,Date Mismatch,0.0,LOW,Batch review recommended
+TXN058,Amount Mismatch,50.0,LOW,Batch review recommended
+TXN059,Amount Mismatch,100.0,LOW,Batch review recommended
+TXN063,Missing Settlement,7350.0,HIGH,Immediate human review
+TXN066,Fee Mismatch,90.0,LOW,Batch review recommended
+TXN067,Date Mismatch,0.0,LOW,Batch review recommended
+TXN076,Missing Settlement,9800.0,HIGH,Immediate human review
+TXN078,Amount Mismatch,50.0,LOW,Batch review recommended
+TXN079,Amount Mismatch,300.0,MEDIUM,Finance team review
+TXN081,Duplicate Transaction,0.0,HIGH,Verify duplicate before settlement
+TXN082,Duplicate Transaction,0.0,HIGH,Verify duplicate before settlement
+TXN085,Date Mismatch,0.0,LOW,Batch review recommended
+TXN093,Missing Settlement,490.0,HIGH,Immediate human review
+TXN096,Missing Settlement,2450.0,HIGH,Immediate human review
+TXN098,Missing Settlement,7350.0,HIGH,Immediate human review
+TXN099,Missing Settlement,1470.0,HIGH,Immediate human review
