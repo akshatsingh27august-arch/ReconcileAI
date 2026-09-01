@@ -1,5 +1,6 @@
 import streamlit as st
 import csv
+from ai_investigator import investigate_exception
 
 
 # ==========================================
@@ -320,113 +321,49 @@ if filtered_exceptions:
                 f"**Recommended Action:** "
                 f"{selected['recommended_action']}"
             )
-
-                # ==========================================
-        # INVESTIGATION RESULT
+        # ==========================================
+        # AI INVESTIGATION RESULT
         # ==========================================
 
-        st.write("### 🤖 Investigation Result")
+        st.write("### 🤖 AI Investigation Result")
 
-        issue = selected["type"]
         difference = abs(float(selected["difference"]))
-        priority = selected["priority"]
 
-        if issue == "Amount Mismatch":
+        exception_data = f"""
+Transaction ID: {selected["transaction_id"]}
+Issue: {selected["type"]}
+Difference: ₹{difference:,.2f}
+Priority: {selected["priority"]}
+Recommended Action: {selected["recommended_action"]}
+"""
 
-            explanation = (
-                f"The transaction has an amount discrepancy "
-                f"of ₹{difference:,.2f}. The recorded transaction "
-                f"amount does not match the expected settlement."
-            )
+        if st.button("🤖 Investigate with Gemini", key="investigate_button"):
 
-            action = (
-                "Verify the order amount and settlement amount "
-                "against the original payment record."
-            )
+            with st.spinner("Gemini is investigating the exception..."):
 
-        elif issue == "Fee Mismatch":
+                try:
+                    result = investigate_exception(exception_data)
 
-            explanation = (
-                f"A fee discrepancy of ₹{difference:,.2f} "
-                f"was detected. The expected processing fee "
-                f"does not match the recorded fee."
-            )
+                    st.success("AI investigation completed.")
 
-            action = (
-                "Verify the applicable payment fee and compare "
-                "it with the settlement record."
-            )
+                    st.markdown(result)
 
-        elif issue == "Date Mismatch":
+                except Exception as e:
 
-            explanation = (
-                "The transaction and settlement dates do not "
-                "match the expected reconciliation window."
-            )
+                    st.error(
+                        "Gemini investigation could not be completed."
+                    )
 
-            action = (
-                "Check settlement timing, transaction timestamps "
-                "and the applicable settlement cycle."
-            )
+                    st.write(
+                        "The existing rule-based investigation remains available."
+                    )
 
-        elif issue == "Duplicate Transaction":
-
-            explanation = (
-                "A possible duplicate transaction was detected. "
-                "The transaction should be verified before any "
-                "additional settlement action."
-            )
-
-            action = (
-                "Compare transaction IDs, order records and "
-                "payment timestamps before processing."
-            )
-
-        elif issue == "Missing Settlement":
-
-            explanation = (
-                "The transaction appears to have no corresponding "
-                "settlement record."
-            )
-
-            action = (
-                "Immediately verify the settlement status and "
-                "escalate if the payment was successfully captured."
-            )
-
-        else:
-
-            explanation = (
-                "An exception was detected that requires "
-                "additional financial review."
-            )
-
-            action = (
-                "Review the transaction evidence before taking action."
-            )
-
-
-        st.write("**What happened?**")
-
-        st.write(explanation)
-
-        st.write("**Recommended action**")
-
-        st.write(action)
-
-        st.write("**Risk level**")
-
-        if priority == "HIGH":
-            st.error("🔴 HIGH — Human review recommended")
-
-        elif priority == "MEDIUM":
-            st.warning("🟡 MEDIUM — Finance review recommended")
-
-        else:
-            st.success("🟢 LOW — Batch review recommended")
+                    st.caption(
+                        f"Technical detail: {str(e)}"
+                    )
 
         st.caption(
-            "Investigation is based on the available transaction "
+            "AI investigation is based on the available transaction "
             "evidence. Final financial decisions require human approval."
         )
 
