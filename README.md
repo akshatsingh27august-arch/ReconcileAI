@@ -1,59 +1,90 @@
-# ReconcileAI
+# ReconcileAI — AI Finance Controller
 
-## AI Finance Controller
+ReconcileAI is an AI-assisted finance operations system that automates transaction reconciliation, detects exceptions, prioritizes financial risks, and provides evidence-based AI investigation support.
 
-ReconcileAI is a financial reconciliation and exception-management system.
+## 🎯 Razorpay Buildathon — AI Finance Controller
 
-## What it does
+### Problem
 
-- Processes transaction data
-- Identifies reconciliation exceptions
-- Classifies exceptions by priority
-- Provides recommended actions
-- Displays financial metrics
-- Provides an interactive investigation dashboard
-- Keeps human approval in the loop
+Finance teams often reconcile large batches of payment transactions manually. This can make it difficult to quickly identify:
 
-## Current Workflow
+- Amount mismatches
+- Missing settlements
+- Duplicate transactions
+- Fee mismatches
+- Settlement date mismatches
 
-Transactions
-→ Reconciliation
-→ Exception Detection
-→ Investigation
-→ Priority Classification
-→ Finance Dashboard
-→ Human Review
+ReconcileAI automates the first layer of this finance-operations workflow.
 
-## Technologies
+## 🚀 What ReconcileAI Does
 
-- Python
-- Streamlit
-- CSV
-- Rule-based financial validation
+ReconcileAI processes a synthetic batch of **100 unique transactions / 104 physical records** and:
 
-## How to Run
+1. Reconciles transaction amounts.
+2. Detects duplicate transaction records.
+3. Identifies unresolved exceptions.
+4. Calculates the reconciliation match rate.
+5. Prioritizes exceptions by financial risk.
+6. Provides optional Gemini AI-assisted investigation.
+7. Keeps human review in the loop for financial decisions.
 
-Install dependencies:
+## 📊 Current Results
 
-pip install -r requirements.txt
+| Metric | Result |
+|---|---:|
+| Physical records processed | 104 |
+| Unique transactions | 100 |
+| Matched transactions | 74 |
+| Match rate | **74.0%** |
+| Exceptions | 26 |
+| HIGH priority | 11 |
+| MEDIUM priority | 11 |
+| LOW priority | 4 |
 
-Run the application:
+The system reports unresolved exceptions honestly instead of forcing uncertain transactions into a match.
 
-streamlit run dashboard.py
+## 🔎 Exception Types
 
-Then open:
+The synthetic dataset contains:
 
-http://localhost:8501
+- Amount Mismatch
+- Missing Settlement
+- Duplicate Transaction
+- Fee Mismatch
+- Date Mismatch
 
-## Project Structure
+## 🧠 AI Investigation
 
-- generate_data.py — generates transaction data
-- reconciliation.py — performs reconciliation
-- investigator.py — investigates exceptions
-- finance_summary.py — generates financial metrics
-- priority.py — assigns exception priorities
-- dashboard.py — Streamlit dashboard
+Gemini is used as an **investigation assistant**, not as the authority for financial decisions.
 
-## Important
+The AI receives transaction evidence and returns:
 
-Financial decisions remain subject to human approval.
+- Root cause assessment
+- Supporting evidence
+- Recommended investigation action
+- Risk level
+- Human review requirement
+- Confidence level
+
+The system instructs the AI not to invent transaction information or make final financial decisions.
+
+If AI investigation is unavailable because of API quota or service limitations, the core reconciliation and prioritization pipeline continues to work.
+
+## 🏗️ Architecture
+
+```text
+Synthetic Transaction Data
+          ↓
+     Reconciliation
+          ↓
+   Match / Exception
+          ↓
+ Exception Prioritization
+          ↓
+   Finance Dashboard
+          ↓
+ AI Investigation (Optional)
+          ↓
+ Evidence + Recommendation
+          ↓
+     Human Review
