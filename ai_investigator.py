@@ -1,5 +1,6 @@
 import os
 import time
+
 from dotenv import load_dotenv
 from google import genai
 
@@ -10,29 +11,49 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found in .env")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
 
 def investigate_exception(exception_data):
 
     prompt = f"""
-You are an AI Finance Controller investigating a transaction reconciliation exception.
+You are ReconcileAI, an AI Finance Controller helping a finance
+operations team investigate reconciliation exceptions.
 
-Analyze ONLY the evidence provided below.
+Analyze ONLY the transaction evidence provided below.
 
-Transaction evidence:
+IMPORTANT RULES:
+
+1. Use ONLY the evidence provided.
+2. Do not invent missing transaction details.
+3. Clearly distinguish facts from inference.
+4. Do not assume the external payment gateway or bank is at fault
+   unless the evidence proves it.
+5. If the exact root cause cannot be confirmed from the evidence,
+   say so clearly.
+6. Recommend a practical next investigation step.
+7. Never approve, reject, refund, or make a final financial decision.
+8. A human must make the final financial decision.
+
+TRANSACTION EVIDENCE:
+
 {exception_data}
 
-Return your response in exactly this structure:
+Return your response using exactly these sections:
 
 ROOT CAUSE:
-Explain the most likely reason for the exception.
+State the most likely operational explanation.
+Clearly label anything that is an inference.
+If the exact cause cannot be confirmed from the evidence, say that.
 
 EVIDENCE:
-Mention the important transaction facts supporting your conclusion.
+List the specific transaction facts supporting the conclusion.
 
 RECOMMENDED ACTION:
-Give a practical action for the finance operations team.
+Give the finance operations team the next practical investigation
+or resolution step.
 
 RISK LEVEL:
 Choose exactly one: LOW, MEDIUM, or HIGH.
@@ -40,11 +61,16 @@ Choose exactly one: LOW, MEDIUM, or HIGH.
 HUMAN REVIEW:
 Choose exactly one: REQUIRED or NOT REQUIRED.
 
+CONFIDENCE:
+Choose exactly one: LOW, MEDIUM, or HIGH.
+
 Do not invent transaction information.
-Do not make financial decisions or approve/reject payments.
+Do not make financial decisions.
 """
 
-    for attempt in range(3):
+    # Try the Gemini request up to 2 times.
+    # A 503 error usually means temporary high demand.
+    for attempt in range(2):
 
         try:
 
@@ -57,7 +83,11 @@ Do not make financial decisions or approve/reject payments.
 
         except Exception as e:
 
-            if "503" in str(e) and attempt < 2:
+            error_message = str(e)
+
+            # Retry only temporary Gemini server errors.
+            if "503" in error_message and attempt == 0:
+
                 time.sleep(3)
                 continue
 

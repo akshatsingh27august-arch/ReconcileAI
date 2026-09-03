@@ -5,26 +5,42 @@ def calculate_priority(exception_type, difference):
 
     difference = abs(float(difference))
 
-    # Missing settlements are always important
+    # Critical operational exceptions
     if exception_type == "Missing Settlement":
         return "HIGH", "Immediate human review"
 
-    # Duplicate transactions can create financial risk
     if exception_type == "Duplicate Transaction":
         return "HIGH", "Verify duplicate before settlement"
 
-    # Large monetary differences are high priority
+    # Date and fee issues require investigation
+    if exception_type == "Date Mismatch":
+        return "MEDIUM", "Investigate settlement timing"
+
+    if exception_type == "Fee Mismatch":
+        return "MEDIUM", "Verify processing fee"
+
+    # Amount mismatch based on financial exposure
+    if exception_type == "Amount Mismatch":
+
+        if difference > 500:
+            return "HIGH", "Immediate finance investigation"
+
+        if difference > 100:
+            return "MEDIUM", "Finance team review"
+
+        return "LOW", "Batch review recommended"
+
+    # Fallback for unexpected exception types
     if difference > 500:
         return "HIGH", "Immediate finance investigation"
 
-    # Medium-sized differences need normal review
     if difference > 100:
         return "MEDIUM", "Finance team review"
 
-    # Small differences can be reviewed in batches
     return "LOW", "Batch review recommended"
 
 
+# Read reconciliation exceptions
 with open("exceptions.csv", "r") as file:
 
     exceptions = csv.DictReader(file)
@@ -47,6 +63,7 @@ with open("exceptions.csv", "r") as file:
         })
 
 
+# Save prioritized exceptions
 with open("prioritized_exceptions.csv", "w", newline="") as file:
 
     fieldnames = [
@@ -69,7 +86,6 @@ with open("prioritized_exceptions.csv", "w", newline="") as file:
 
 
 # Count priorities
-
 high = 0
 medium = 0
 low = 0
@@ -86,6 +102,7 @@ for record in priority_records:
         low += 1
 
 
+# Display report
 print("\n======================================")
 print("       EXCEPTION PRIORITY REPORT")
 print("======================================")
