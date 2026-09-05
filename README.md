@@ -1,46 +1,52 @@
 # ReconcileAI — AI Finance Controller 💰🤖
 
-ReconcileAI is an AI-assisted finance operations system that automates the first layer of transaction reconciliation.
+ReconcileAI is an AI-assisted finance operations system built for the **Razorpay Buildathon — Track 04: AI Finance Controller**.
 
-It processes synthetic transaction batches, measures reconciliation performance, identifies unresolved exceptions, prioritizes them by risk, and provides optional AI-assisted investigation support.
+It automates the first layer of transaction reconciliation across a synthetic transaction batch, measures reconciliation performance, identifies unresolved exceptions, prioritizes exceptions by risk, validates batch coverage, and provides optional AI-assisted investigation.
+
+> **Design principle:** Rules authorize what can be measured. AI investigates what needs explanation. Humans remain responsible for financial decisions.
 
 ---
 
-## 🎯 Razorpay Buildathon — Track 04: AI Finance Controller
+# 🎯 Razorpay Buildathon — Track 04
 
-### Problem
+## Problem
 
-Finance operations teams often need to reconcile large batches of payment transactions and identify which transactions match expected settlements and which require investigation.
+Finance operations teams need to reconcile large batches of payment transactions and determine which transactions match expected settlements and which require investigation.
 
 Manual reconciliation can make it difficult to quickly identify:
 
 - Amount mismatches
 - Missing settlements
 - Duplicate transactions
-- Fee mismatches
+- Fee-related discrepancies
 - Settlement date mismatches
 
-More importantly, finance teams need an honest view of both successful matches and unresolved exceptions.
-
-### Solution
-
-ReconcileAI automates the first layer of this workflow by:
-
-1. Processing transaction batches
-2. Calculating expected settlement amounts
-3. Identifying successful matches
-4. Identifying unresolved exceptions
-5. Detecting duplicate transaction records
-6. Prioritizing exceptions by risk
-7. Reporting the reconciliation match rate
-8. Providing optional Gemini AI-assisted investigation
-9. Keeping humans responsible for final financial decisions
+A finance controller should not only report successful matches. It should also provide an honest list of transactions that could not be confidently resolved.
 
 ---
 
-# 📊 Current Results
+# 💡 Solution
 
-ReconcileAI was tested on a synthetic dataset containing more than the required 50 records.
+ReconcileAI automates the first layer of this workflow:
+
+1. Load a transaction batch
+2. Calculate expected settlement amounts
+3. Reconcile transactions
+4. Detect duplicate transaction IDs
+5. Identify settlement-date issues
+6. Surface unresolved exceptions
+7. Prioritize exceptions by risk
+8. Validate that the entire batch is accounted for
+9. Present results through a Streamlit dashboard
+10. Optionally investigate exceptions using Gemini AI
+11. Keep humans responsible for final financial decisions
+
+---
+
+# 📊 Measured Batch Results
+
+The current synthetic test batch contains **104 physical records representing 100 unique transactions**.
 
 | Metric | Result |
 |---|---:|
@@ -48,12 +54,27 @@ ReconcileAI was tested on a synthetic dataset containing more than the required 
 | Unique transactions | **100** |
 | Matched transactions | **74** |
 | Match rate | **74.0%** |
-| Unresolved exceptions | **26** |
-| HIGH priority | **11** |
-| MEDIUM priority | **11** |
-| LOW priority | **4** |
+| Exceptions | **26** |
+| Batch coverage | **100.0%** |
+| Unaccounted transactions | **0** |
+| Duplicate IDs detected | **4** |
+| Validation status | **PASS** |
 
-The system reports unresolved exceptions honestly instead of forcing uncertain transactions into successful matches.
+### Exception Priority
+
+| Priority | Count |
+|---|---:|
+| HIGH | **11** |
+| MEDIUM | **11** |
+| LOW | **4** |
+
+### Financial Impact
+
+The dashboard currently reports:
+
+**Amount at risk: ₹31,205**
+
+The amount-at-risk figure represents the aggregate financial difference associated with the reported exceptions.
 
 ---
 
@@ -67,55 +88,44 @@ The synthetic dataset contains multiple finance-operation exception categories:
 - **Fee Mismatch**
 - **Date Mismatch**
 
-Each exception is assigned a priority and recommended action.
+Each exception is surfaced for investigation and assigned a priority.
 
 ---
 
-# 🧠 AI Investigation
+# 🧠 Detection & Explainability
 
-ReconcileAI uses **Gemini** as an optional investigation assistant.
+ReconcileAI distinguishes between different ways an exception can enter the investigation pipeline.
 
-The AI receives transaction evidence and provides:
+### Rule-based detection
 
-- Root cause assessment
-- Supporting evidence
-- Recommended investigation action
-- Risk level
-- Human review requirement
-- Confidence level
+Some conditions can be independently established from transaction evidence.
 
-### Responsible AI Design
+Examples:
 
-The AI is instructed to:
+- **Duplicate ID Detection** — repeated transaction IDs
+- **Settlement Date Rule** — settlement date inconsistent with the expected transaction timing
 
-- Use only the provided transaction evidence
-- Avoid inventing transaction information
-- Clearly distinguish facts from inference
-- Avoid making unsupported financial claims
-- Recommend investigation steps rather than final financial decisions
-- Escalate uncertain cases for human review
+### Classification-based exceptions
 
-The AI is an **investigation assistant**, not the authority for financial decisions.
+Some synthetic exception categories are supplied by the synthetic dataset and are surfaced by the controller for investigation rather than being presented as independently proven root causes.
 
-If the AI service is unavailable because of API quota or service limitations, the core reconciliation and prioritization pipeline continues to work.
+This distinction is intentional.
+
+ReconcileAI does **not** claim that every synthetic label is independently discoverable from the available transaction fields.
+
+This makes the system's reporting more transparent and avoids overstating detection accuracy.
 
 ---
 
-# 🏗️ Architecture
+# 🛡️ Batch Validation
+
+The controller validates that every unique transaction is accounted for.
+
+For the current batch:
 
 ```text
-Synthetic Transaction Data
-            ↓
-      Reconciliation
-            ↓
-     Match / Exception
-            ↓
-  Exception Prioritization
-            ↓
-     Finance Dashboard
-            ↓
-  AI Investigation (Optional)
-            ↓
- Evidence + Recommendation
-            ↓
-       Human Review
+74 matched
++
+26 exceptions
+=
+100 unique transactions
