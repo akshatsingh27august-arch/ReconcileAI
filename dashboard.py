@@ -20,6 +20,22 @@ with open("transactions.csv", "r") as file:
 with open("prioritized_exceptions.csv", "r") as file:
     exceptions = list(csv.DictReader(file))
 
+# Load detection methods produced by the reconciliation engine.
+try:
+    with open("exceptions.csv", "r") as file:
+        detection_records = {
+            row["transaction_id"]: row.get("detection_method", "Not recorded")
+            for row in csv.DictReader(file)
+        }
+except FileNotFoundError:
+    detection_records = {}
+
+for exception in exceptions:
+    exception["detection_method"] = detection_records.get(
+        exception["transaction_id"],
+        "Not recorded"
+    )
+
 
 # ============================================================
 # TRANSACTION METRICS
@@ -203,6 +219,40 @@ with k5:
 
 st.divider()
 
+# Reconciliation health
+st.subheader("🩺 Reconciliation Health")
+st.markdown(
+    "A quick health check of the current finance reconciliation batch.",
+    unsafe_allow_html=True
+)
+
+health_status = "HEALTHY" if match_rate >= 90 else "ATTENTION" if match_rate >= 75 else "REVIEW REQUIRED"
+health_message = (
+    "Most transactions are reconciled successfully."
+    if match_rate >= 90
+    else "Most transactions are reconciled, but some exceptions need review."
+    if match_rate >= 75
+    else "A significant portion of the batch requires finance investigation."
+)
+
+h1, h2, h3, h4 = st.columns(4)
+
+with h1:
+    st.metric("Reconciliation Health", health_status)
+
+with h2:
+    st.metric("Successfully Reconciled", f"{matched_transactions} / {unique_transactions}")
+
+with h3:
+    st.metric("Requires Investigation", f"{total_exceptions} / {unique_transactions}")
+
+with h4:
+    st.metric("Amount at Risk", f"₹ {amount_at_risk:,.2f}")
+
+st.info(f"**{health_status}:** {health_message}")
+
+st.divider()
+
 # Financial impact + risk distribution
 st.subheader("💰 Financial Impact & Risk")
 st.markdown(
@@ -258,6 +308,72 @@ type_rows = [
 
 if type_rows:
     st.bar_chart(type_rows, x="Exception Type", y="Count", height=280)
+
+st.divider()
+
+# ============================================================
+# DETECTION & EXPLAINABILITY
+# ============================================================
+st.subheader("🧠 Detection & Explainability")
+st.markdown(
+    "Shows how ReconcileAI identifies each exception and separates "
+    "rule-based detection from synthetic-data classification.",
+    unsafe_allow_html=True
+)
+
+detection_counts = {}
+for exception in exceptions:
+    method = exception.get("detection_method", "Not recorded")
+    detection_counts[method] = detection_counts.get(method, 0) + 1
+
+d1, d2, d3 = st.columns(3)
+
+with d1:
+    st.metric(
+        "Rule-Based Detections",
+        detection_counts.get("Duplicate ID Detection", 0)
+        + detection_counts.get("Settlement Date Rule", 0)
+    )
+
+with d2:
+    st.metric(
+        "Classification-Based",
+        detection_counts.get("Exception Classification", 0)
+    )
+
+with d3:
+    st.metric(
+        "Detection Methods",
+        len(detection_counts)
+    )
+
+explain_rows = []
+for exception in exceptions:
+    explain_rows.append({
+        "Transaction": exception["transaction_id"],
+        "Exception": exception["type"],
+        "Detection Method": exception.get("detection_method", "Not recorded"),
+        "Difference": f"₹ {float(exception['difference']):,.2f}"
+    })
+
+if explain_rows:
+    st.dataframe(
+        explain_rows,
+        width="stretch",
+        hide_index=True,
+        column_config={
+            "Transaction": st.column_config.TextColumn("Transaction"),
+            "Exception": st.column_config.TextColumn("Exception"),
+            "Detection Method": st.column_config.TextColumn("Detection Method"),
+            "Difference": st.column_config.TextColumn("Difference")
+        }
+    )
+
+st.info(
+    "Design principle: deterministic rules detect what can be proven from "
+    "transaction evidence; AI is used only for evidence-based investigation "
+    "and explanation. Human approval remains required for financial decisions."
+)
 
 st.divider()
 
@@ -380,7 +496,8 @@ if filtered_exceptions:
                 <div class="evidence-box">
                 <b>Transaction ID:</b> {selected['transaction_id']}<br>
                 <b>Issue:</b> {selected['type']}<br>
-                <b>Difference:</b> ₹ {float(selected['difference']):,.2f}
+                <b>Difference:</b> ₹ {float(selected['difference']):,.2f}<br>
+                <b>Detection Method:</b> {selected.get("detection_method", "Not recorded")}
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -469,6 +586,7 @@ Transaction Status: {transaction["status"]}
 Exception Type: {transaction["exception_type"]}
 Reconciliation Difference: ₹{difference:,.2f}
 Priority: {selected["priority"]}
+Detection Method: {selected.get("detection_method", "Not recorded")}
 Recommended Action: {selected["recommended_action"]}
 
 All records sharing this Transaction ID:

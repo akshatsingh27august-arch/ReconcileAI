@@ -2,11 +2,24 @@ import csv
 
 
 def reconcile_transactions(filename):
+    """
+    Reconcile a batch of transaction records.
+
+    Returns:
+        total_records
+        unique_transaction_count
+        matched
+        exceptions
+        match_rate
+    """
 
     transactions = []
 
-    # Read all transaction records
-    with open(filename, "r") as file:
+    # ==========================================
+    # STEP 1: READ ALL TRANSACTION RECORDS
+    # ==========================================
+
+    with open(filename, "r", newline="") as file:
 
         reader = csv.DictReader(file)
 
@@ -15,7 +28,10 @@ def reconcile_transactions(filename):
 
     total_records = len(transactions)
 
-    # Find duplicate transaction IDs
+    # ==========================================
+    # STEP 2: FIND DUPLICATE TRANSACTION IDs
+    # ==========================================
+
     transaction_counts = {}
 
     for transaction in transactions:
@@ -33,6 +49,10 @@ def reconcile_transactions(filename):
         if count > 1:
             duplicate_ids.add(transaction_id)
 
+    # ==========================================
+    # STEP 3: RECONCILE EACH TRANSACTION
+    # ==========================================
+
     matched = 0
     exceptions = []
 
@@ -43,7 +63,9 @@ def reconcile_transactions(filename):
         transaction_id = transaction["transaction_id"]
 
         order_amount = float(transaction["order_amount"])
-        settlement_amount = float(transaction["settlement_amount"])
+        settlement_amount = float(
+            transaction["settlement_amount"]
+        )
         fee = float(transaction["fee"])
 
         expected_settlement = order_amount - fee
@@ -55,10 +77,12 @@ def reconcile_transactions(filename):
 
         exception_type = transaction["exception_type"]
 
-        # Handle duplicates separately
+        # ======================================
+        # DUPLICATE DETECTION
+        # ======================================
+
         if transaction_id in duplicate_ids:
 
-            # Create only one exception for each duplicate ID
             if transaction_id not in processed_duplicate_ids:
 
                 exceptions.append({
@@ -66,17 +90,27 @@ def reconcile_transactions(filename):
                     "type": "Duplicate Transaction",
                     "order_amount": order_amount,
                     "settlement_amount": settlement_amount,
-                    "expected_settlement": expected_settlement,
+                    "expected_settlement":
+                        expected_settlement,
                     "difference": difference,
-                    "transaction_date": transaction["transaction_date"],
-                    "settlement_date": transaction["settlement_date"]
+                    "transaction_date":
+                        transaction["transaction_date"],
+                    "settlement_date":
+                        transaction["settlement_date"],
+                    "detection_method":
+                        "Duplicate ID Detection"
                 })
 
-                processed_duplicate_ids.add(transaction_id)
+                processed_duplicate_ids.add(
+                    transaction_id
+                )
 
             continue
 
-        # Normal reconciliation
+        # ======================================
+        # NORMAL AMOUNT RECONCILIATION
+        # ======================================
+
         amount_matches = abs(difference) < 0.01
 
         if amount_matches and exception_type == "None":
@@ -86,23 +120,54 @@ def reconcile_transactions(filename):
         else:
 
             if exception_type == "None":
-                detected_type = "Unexpected Amount Difference"
+
+                detected_type = (
+                    "Unexpected Amount Difference"
+                )
+
+                detection_method = (
+                    "Amount Reconciliation Rule"
+                )
+
+            elif exception_type == "Date Mismatch":
+
+                detected_type = "Date Mismatch"
+
+                detection_method = (
+                    "Settlement Date Rule"
+                )
+
             else:
+
                 detected_type = exception_type
+
+                detection_method = (
+                    "Exception Classification"
+                )
 
             exceptions.append({
                 "transaction_id": transaction_id,
                 "type": detected_type,
                 "order_amount": order_amount,
                 "settlement_amount": settlement_amount,
-                "expected_settlement": expected_settlement,
+                "expected_settlement":
+                    expected_settlement,
                 "difference": difference,
-                "transaction_date": transaction["transaction_date"],
-                "settlement_date": transaction["settlement_date"]
+                "transaction_date":
+                    transaction["transaction_date"],
+                "settlement_date":
+                    transaction["settlement_date"],
+                "detection_method":
+                    detection_method
             })
 
-    # Calculate unique transaction count
-    unique_transaction_count = len(transaction_counts)
+    # ==========================================
+    # STEP 4: CALCULATE BATCH METRICS
+    # ==========================================
+
+    unique_transaction_count = len(
+        transaction_counts
+    )
 
     match_rate = (
         matched / unique_transaction_count * 100
@@ -119,20 +184,10 @@ def reconcile_transactions(filename):
     )
 
 
-# Run reconciliation
-
-(
-    total_records,
-    unique_transactions,
-    matched,
-    exceptions,
-    match_rate
-) = reconcile_transactions("transactions.csv")
-
-
-# Save exceptions
-
-with open("exceptions.csv", "w", newline="") as file:
+def save_exceptions(exceptions, filename):
+    """
+    Save reconciliation exceptions to a CSV file.
+    """
 
     fieldnames = [
         "transaction_id",
@@ -142,62 +197,202 @@ with open("exceptions.csv", "w", newline="") as file:
         "expected_settlement",
         "difference",
         "transaction_date",
-        "settlement_date"
+        "settlement_date",
+        "detection_method"
     ]
 
-    writer = csv.DictWriter(
-        file,
-        fieldnames=fieldnames
+    with open(
+        filename,
+        "w",
+        newline=""
+    ) as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=fieldnames
+        )
+
+        writer.writeheader()
+
+        for exception in exceptions:
+            writer.writerow(exception)
+
+
+def print_reconciliation_report(
+    total_records,
+    unique_transactions,
+    matched,
+    exceptions,
+    match_rate
+):
+    """
+    Display a complete reconciliation report.
+    """
+
+    exception_count = len(exceptions)
+
+    # ==========================================
+    # BATCH VALIDATION
+    # ==========================================
+
+    accounted_records = (
+        matched + exception_count
     )
 
-    writer.writeheader()
+    unaccounted_records = (
+        unique_transactions - accounted_records
+    )
 
-    for exception in exceptions:
-        writer.writerow(exception)
+    duplicate_count = sum(
+        1
+        for exception in exceptions
+        if exception["type"] ==
+        "Duplicate Transaction"
+    )
 
+    if unique_transactions > 0:
 
-# Display report
+        batch_coverage = (
+            accounted_records /
+            unique_transactions
+        ) * 100
 
-print("\n================================")
-print("       RECONCILIATION REPORT")
-print("================================")
+    else:
 
-print(
-    "Physical records     :",
-    total_records
-)
+        batch_coverage = 0
 
-print(
-    "Unique transactions  :",
-    unique_transactions
-)
+    # ==========================================
+    # RECONCILIATION REPORT
+    # ==========================================
 
-print(
-    "Matched transactions :",
-    matched
-)
-
-print(
-    "Exceptions           :",
-    len(exceptions)
-)
-
-print(
-    "Match rate           :",
-    round(match_rate, 2),
-    "%"
-)
-
-print("\nException file created: exceptions.csv")
-
-print("\n---------- EXCEPTIONS ----------")
-
-for exception in exceptions:
+    print("\n================================")
+    print("       RECONCILIATION REPORT")
+    print("================================")
 
     print(
-        exception["transaction_id"],
-        "|",
-        exception["type"],
-        "| Difference: ₹",
-        exception["difference"]
+        "Physical records     :",
+        total_records
+    )
+
+    print(
+        "Unique transactions  :",
+        unique_transactions
+    )
+
+    print(
+        "Matched transactions :",
+        matched
+    )
+
+    print(
+        "Exceptions           :",
+        exception_count
+    )
+
+    print(
+        "Match rate           :",
+        round(match_rate, 2),
+        "%"
+    )
+
+    # ==========================================
+    # BATCH VALIDATION
+    # ==========================================
+
+    print("\n================================")
+    print("       BATCH VALIDATION")
+    print("================================")
+
+    print(
+        "Records accounted for :",
+        accounted_records
+    )
+
+    print(
+        "Unaccounted records   :",
+        unaccounted_records
+    )
+
+    print(
+        "Duplicate IDs detected:",
+        duplicate_count
+    )
+
+    print(
+        "Batch coverage        :",
+        round(batch_coverage, 2),
+        "%"
+    )
+
+    if unaccounted_records == 0:
+
+        print(
+            "Validation status     : PASS"
+        )
+
+    else:
+
+        print(
+            "Validation status     : REVIEW REQUIRED"
+        )
+
+    print(
+        "\nException file created: "
+        "exceptions.csv"
+    )
+
+    # ==========================================
+    # EXCEPTION DETAILS
+    # ==========================================
+
+    print("\n---------- EXCEPTIONS ----------")
+
+    for exception in exceptions:
+
+        print(
+            exception["transaction_id"],
+            "|",
+            exception["type"],
+            "| Difference: ₹",
+            exception["difference"],
+            "| Detection:",
+            exception["detection_method"]
+        )
+
+
+# ==============================================
+# MAIN PROGRAM
+# ==============================================
+#
+# IMPORTANT:
+# This block only runs when this file is
+# executed directly.
+#
+# Importing reconciliation.py from another
+# Python file will NOT automatically run it.
+# ==============================================
+
+if __name__ == "__main__":
+
+    (
+        total_records,
+        unique_transactions,
+        matched,
+        exceptions,
+        match_rate
+    ) = reconcile_transactions(
+        "transactions.csv"
+    )
+
+    save_exceptions(
+        exceptions,
+        "exceptions.csv"
+    )
+
+    print_reconciliation_report(
+        total_records,
+        unique_transactions,
+        matched,
+        exceptions,
+        match_rate
     )
