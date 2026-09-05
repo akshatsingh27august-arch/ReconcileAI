@@ -8,7 +8,7 @@ It automates the first layer of transaction reconciliation across a synthetic tr
 
 ---
 
-# 🎯 Razorpay Buildathon — Track 04
+# 🎯 Razorpay Buildathon — Track 04: AI Finance Controller
 
 ## Problem
 
@@ -96,7 +96,7 @@ Each exception is surfaced for investigation and assigned a priority.
 
 ReconcileAI distinguishes between different ways an exception can enter the investigation pipeline.
 
-### Rule-based detection
+## Rule-Based Detection
 
 Some conditions can be independently established from transaction evidence.
 
@@ -105,7 +105,7 @@ Examples:
 - **Duplicate ID Detection** — repeated transaction IDs
 - **Settlement Date Rule** — settlement date inconsistent with the expected transaction timing
 
-### Classification-based exceptions
+## Classification-Based Exceptions
 
 Some synthetic exception categories are supplied by the synthetic dataset and are surfaced by the controller for investigation rather than being presented as independently proven root causes.
 
