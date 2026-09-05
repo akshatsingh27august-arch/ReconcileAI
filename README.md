@@ -29,7 +29,7 @@ ReconcileAI automates the first layer of this workflow by:
 1. Processing transaction batches
 2. Calculating expected settlement amounts
 3. Identifying successful matches
-4. Detecting unresolved exceptions
+4. Identifying unresolved exceptions
 5. Detecting duplicate transaction records
 6. Prioritizing exceptions by risk
 7. Reporting the reconciliation match rate
